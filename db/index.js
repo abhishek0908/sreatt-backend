@@ -22,7 +22,7 @@ async function connectToDatabase() {
     return db;
   } catch (err) {
     console.error("Connection failed:", err);
-    throw new Error(`Database connection failed${dbName}`);
+    throw new Error(`Database connection failed${dbName,uri}`);
   }
 }
 
