@@ -1,6 +1,5 @@
-require('dotenv').config(); // Load environment variables from .env
 
-const { MongoClient } = require('mongodb');
+import { MongoClient } from 'mongodb';
 
 // Function to connect to MongoDB and return the database
 async function connectToDatabase() {
@@ -26,4 +25,4 @@ async function connectToDatabase() {
   }
 }
 
-module.exports = { connectToDatabase };
+export default { connectToDatabase };

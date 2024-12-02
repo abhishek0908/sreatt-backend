@@ -1,13 +1,18 @@
 // Import required modules
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 import express from 'express';
-import { json, urlencoded } from 'body-parser';
+import bodyParser from 'body-parser';
+const { json, urlencoded } = bodyParser;
 import cors from 'cors';
-import { connectToDatabase } from './db/index';
-import routes from './src/controllers/routes'; // Importing all routes from routes/index.js
+import connectToDatabase from './db/index.js';
+import routes from './routes/routes.js'; // Importing all routes from routes/index.js
 
 // Initialize Express app
 const app = express();
-
 // Middleware
 app.use(json());
 app.use(urlencoded({ extended: true }));

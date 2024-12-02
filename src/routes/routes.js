@@ -1,13 +1,12 @@
 // routes/index.js
-const express = require('express');
+import express from 'express'
 const router = express.Router();
 
 // Import route files
-const userRoutes = require('./user.routes');
-// const productRoutes = require('./product.routes'); // Uncomment this when adding product routes
+import userRoutes from './user.routes.js'
 
 // Use imported routes
 router.use('/user', userRoutes); // Route for user-related operations
 // router.use('/product', productRoutes); // Uncomment this when adding product routes
 
-module.exports = router;
+export default router;
