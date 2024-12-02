@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { UserRoles } from '../utils/constants';
+import { UserRoles } from '../utils/constants.js';
 
 const UserSchema = new mongoose.Schema({
     email: {

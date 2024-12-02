@@ -1,8 +1,8 @@
 // controllers/userController.js
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { UserRoles } from '../utils/constants';
-import User from '../db/user.model';
+import { UserRoles } from '../utils/constants.js';
+import User from '../db/user.model.js';
 // Define the Zod schema for validation
 const signUpSchema = z.object({
   first_name: z.string().min(1, "First name is required"),  // First name must be a non-empty string
