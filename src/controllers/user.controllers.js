@@ -1,34 +1,89 @@
-// controllers/userController.js
+import dotenv from 'dotenv';
+dotenv.config();
+
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { UserRoles } from '../utils/constants';
-import User from '../db/user.model';
-// Define the Zod schema for validation
+import { UserRoles } from '../utils/constants.js';
+import User from '../db/user.model.js';
+import logger from '../logger.js';
+import StatusCodes from '../utils/statusCodes.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+const SECRET_KEY = process.env.SECRET_KEY
+if (!SECRET_KEY) {
+  throw new Error('SECRET_KEY is not defined in the environment variables');
+}
+
 const signUpSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),  // First name must be a non-empty string
-  last_name: z.string().min(1, "Last name is required"),    // Last name must be a non-empty string
-  email: z.string().email("Invalid email format"),           // Email must be a valid email format
-  password: z.string().min(6, "Password must be at least 6 characters long"), // Password must be at least 6 characters
-  role: z.enum(Object.values(UserRoles), "Role is required") // Role must be one of the predefined values
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 characters"),
+  role: z.enum(Object.values(UserRoles), "Role is required")
 });
 
 export const SignUp = async (req, res) => {
   try {
-    // Validate the request body using the Zod schema
-    const validatedData = signUpSchema.parse(req.body); // Throws an error if validation fails
-    
-    // If the data is valid, you can proceed with further actions, like saving to the database
-    const { first_name, last_name, email, password, role } = validatedData;
-    const user = User({
-      first_name,last_name,email,password,role
-    })
-    user.save()
-    // Logic to save the user to the database (e.g., using Mongoose) goes here
-    
-    res.status(201).json({ message: "User signed up successfully" });
+    const validatedData = signUpSchema.parse(req.body);
+    const { first_name, last_name, email, password, phoneNumber, role } = validatedData;
+
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      logger.warn(`Email ${email} is already registered.`);
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email is already in use" });
+    }
+
+    const phoneExists = await User.findOne({ phoneNumber });
+    if (phoneExists) {
+      logger.warn(`Phone number ${phoneNumber} is already registered.`);
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Phone number is already in use" });
+    }
+
+    const user = new User({
+      first_name,
+      last_name,
+      email,
+      password,
+      phoneNumber,
+      role
+    });
+
+    await user.save();
+    logger.info(`New user signed up: ${email}`);
+    res.status(StatusCodes.CREATED).json({ message: "User signed up successfully" });
 
   } catch (error) {
-    // If validation fails, send a 400 status with error details
-    res.status(400).json({ error: error.errors || "Validation failed" });
+    logger.error(error.message);
+    res.status(StatusCodes.BAD_REQUEST).json({ error: error.errors || "Validation failed" });
   }
 };
+
+
+export const SignIn = async (req, res) => {
+  const { email, password } = req.body
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Email Not Exists"
+      })
+    }
+    console.log(user)
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        error: "Invalid password"
+      });
+    } 
+    const token = jwt.sign(email,SECRET_KEY);
+    console.log(token)
+    res.status(StatusCodes.OK).json({ token: token })
+  }
+  catch (error) {
+    logger.error(error.message);
+
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error })
+  }
+
+}
