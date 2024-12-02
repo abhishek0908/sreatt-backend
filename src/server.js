@@ -8,9 +8,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 const { json, urlencoded } = bodyParser;
 import cors from 'cors';
-import connectToDatabase from './db/index.js';
+import connectToDatabase from './db/db.js';
 import routes from './routes/routes.js'; // Importing all routes from routes/index.js
-
+connectToDatabase()
 // Initialize Express app
 const app = express();
 // Middleware
