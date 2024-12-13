@@ -10,9 +10,13 @@ const { json, urlencoded } = bodyParser;
 import cors from 'cors';
 import connectToDatabase from './db/db.js';
 import routes from './routes/routes.js'; // Importing all routes from routes/index.js
-connectToDatabase()
+
+// Connect to the database
+connectToDatabase();
+
 // Initialize Express app
 const app = express();
+
 // Middleware
 app.use(json());
 app.use(urlencoded({ extended: true }));
@@ -32,8 +36,5 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something went wrong!');
 });
 
-
-// // Start the server
-// app.listen(8000, () => {
-//   console.log(`Server is running on http://localhost:${8000}`);
-// });
+// Export the app for Vercel's serverless functions
+export default app;
