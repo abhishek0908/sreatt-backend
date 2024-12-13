@@ -1,8 +1,14 @@
 import mongoose, { mongo } from "mongoose";
+import { v4 as uuidv4 } from 'uuid'; // Import the uuid generator
 
 import { ProductCategories,ImageCount } from "../utils/constants.js";
 
 const productSchema = mongoose.Schema({
+    uuid: {
+        type: String,
+        default: uuidv4, 
+        unique: true
+    },
     productName: {
         type: String,
         required: true,

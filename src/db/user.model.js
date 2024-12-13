@@ -1,9 +1,15 @@
 import mongoose from 'mongoose';
 import { UserRoles, UserStatus } from '../utils/constants.js'; // Assuming you want to store statuses in constants.js
 import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid'; // Import the uuid generator
 
 // Define the User Schema with necessary fields and validations
 const UserSchema = new mongoose.Schema({
+    uuid: {
+        type: String,
+        default: uuidv4, 
+        unique: true
+    },
     email: {
         type: String,
         required: true,

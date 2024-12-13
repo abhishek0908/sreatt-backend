@@ -3,7 +3,7 @@ dotenv.config();
 
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { UserRoles } from '../utils/constants.js';
+import { UserRoles, UserStatus } from '../utils/constants.js';
 import User from '../db/user.model.js';
 import logger from '../logger.js';
 import StatusCodes from '../utils/statusCodes.js';
@@ -25,21 +25,25 @@ const signUpSchema = z.object({
 
 export const SignUp = async (req, res) => {
   try {
+    // Step 1: Validate the incoming request data using Zod schema
     const validatedData = signUpSchema.parse(req.body);
     const { first_name, last_name, email, password, phoneNumber, role } = validatedData;
 
+    // Step 2: Check if the email is already registered
     const emailExists = await User.findOne({ email });
     if (emailExists) {
       logger.warn(`Email ${email} is already registered.`);
       return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email is already in use" });
     }
 
+    // Step 3: Check if the phone number is already registered
     const phoneExists = await User.findOne({ phoneNumber });
     if (phoneExists) {
       logger.warn(`Phone number ${phoneNumber} is already registered.`);
       return res.status(StatusCodes.BAD_REQUEST).json({ error: "Phone number is already in use" });
     }
 
+    // Step 4: Create a new user if the email and phone are unique
     const user = new User({
       first_name,
       last_name,
@@ -49,16 +53,33 @@ export const SignUp = async (req, res) => {
       role
     });
 
+    // Save the user to the database
     await user.save();
     logger.info(`New user signed up: ${email}`);
+
+    // Step 5: Respond with success message
     res.status(StatusCodes.CREATED).json({ message: "User signed up successfully" });
 
   } catch (error) {
+    // Handle errors in a consistent format
+    if (error instanceof z.ZodError) {
+      // Step 6: If the error is from Zod validation, format the errors nicely
+      const formattedErrors = error.errors.map(err => ({
+        field: err.path[0],
+        message: err.message
+      }));
+
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Validation failed",
+        details: formattedErrors
+      });
+    }
+
+    // For other errors (e.g., DB connection issues), log them and send a generic error message
     logger.error(error.message);
-    res.status(StatusCodes.BAD_REQUEST).json({ error: error.errors || "Validation failed" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Something went wrong" });
   }
 };
-
 
 export const SignIn = async (req, res) => {
   const { email, password } = req.body
@@ -76,7 +97,10 @@ export const SignIn = async (req, res) => {
         error: "Invalid password"
       });
     } 
-    const token = jwt.sign(email,SECRET_KEY);
+    const payload = {
+      email: user.email,  // Only include email for identification
+    };
+    const token = jwt.sign(payload,SECRET_KEY);
     console.log(token)
     res.status(StatusCodes.OK).json({ token: token })
   }
@@ -87,3 +111,37 @@ export const SignIn = async (req, res) => {
   }
 
 }
+
+
+export const getAllDistributors = async (req, res) => {
+  try {
+    const distributors = await User.find({ role: UserRoles.DISTRIBUTOR })
+      .select('email first_name last_name phoneNumber role createdAt');
+    res.status(StatusCodes.OK).json({ distributors });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+  }
+};
+
+export const updateDistributor = async (req, res) => {
+  try {
+    const { userId } = req.params; // Assuming distributor ID is passed in the URL
+    const {first_name, last_name, phoneNumber,distributorStatus } = req.body; // Only these fields will be updated
+
+    // Create an object to hold only the allowed updates
+    const updates = { email, first_name, last_name, phoneNumber, distributorStatus };
+    updates["isDistributor"] = distributorStatus === UserStatus.CONFIRMED;
+    const distributor = await User.findByIdAndUpdate(userId, updates, {
+      new: true, // Returns the updated document
+      runValidators: true, // Ensures validation of the updates
+    });
+
+    if (!distributor) {
+      return res.status(StatusCodes.NOT_FOUND).json({ message: 'Distributor not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ distributor });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+  }
+};
