@@ -33,7 +33,7 @@ app.use((err, req, res, next) => {
 });
 
 
-// Start the server
-app.listen(8000, () => {
-  console.log(`Server is running on http://localhost:${8000}`);
-});
+// // Start the server
+// app.listen(8000, () => {
+//   console.log(`Server is running on http://localhost:${8000}`);
+// });
