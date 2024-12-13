@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { UserRoles, UserStatus } from '../utils/constants.js';
 import User from '../db/user.model.js';
 import logger from '../logger.js';
-import StatusCodes from '../utils/statusCodes.js';
+import { StatusCodes } from "http-status-codes";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 const SECRET_KEY = process.env.SECRET_KEY
@@ -14,6 +14,7 @@ if (!SECRET_KEY) {
   throw new Error('SECRET_KEY is not defined in the environment variables');
 }
 
+// Define Zod schema
 const signUpSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
@@ -33,14 +34,20 @@ export const SignUp = async (req, res) => {
     const emailExists = await User.findOne({ email });
     if (emailExists) {
       logger.warn(`Email ${email} is already registered.`);
-      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email is already in use" });
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Validation failed",
+        details: [{ field: "email", message: "Email is already in use" }]
+      });
     }
 
     // Step 3: Check if the phone number is already registered
     const phoneExists = await User.findOne({ phoneNumber });
     if (phoneExists) {
       logger.warn(`Phone number ${phoneNumber} is already registered.`);
-      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Phone number is already in use" });
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Validation failed",
+        details: [{ field: "phoneNumber", message: "Phone number is already in use" }]
+      });
     }
 
     // Step 4: Create a new user if the email and phone are unique
@@ -61,26 +68,25 @@ export const SignUp = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ message: "User signed up successfully" });
 
   } catch (error) {
-    // Handle errors in a consistent format
+    // Step 6: Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      // Step 6: If the error is from Zod validation, format the errors nicely
-      const formattedErrors = error.errors.map(err => ({
+      const formattedErrors = error.errors.map((err) => ({
         field: err.path[0],
         message: err.message
       }));
-
       return res.status(StatusCodes.BAD_REQUEST).json({
         error: "Validation failed",
         details: formattedErrors
       });
     }
 
-    // For other errors (e.g., DB connection issues), log them and send a generic error message
-    logger.error(error.message);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Something went wrong" });
+    // Step 7: Handle unexpected errors
+    logger.error("Unexpected error during signup:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: "An unexpected error occurred. Please try again later."
+    });
   }
 };
-
 export const SignIn = async (req, res) => {
   const { email, password } = req.body
   try {

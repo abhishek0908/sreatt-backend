@@ -10,5 +10,4 @@ router.post('/signin', SignIn); // SignIn route
 router.post('/signup', SignUp); // SignUp route
 router.get('/distributors',verifyUserMiddleware,checkAdminRole, getAllDistributors); // SignUp route
 router.put('/update-distributor/:userId',verifyUserMiddleware,checkAdminRole,updateDistributor); // SignUp route
-updateDistributor
 export default router;
