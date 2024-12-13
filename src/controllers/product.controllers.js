@@ -3,6 +3,7 @@ import StorageService from '../services/storageService.js';
 import path from 'path';
 import Product from '../db/product.model.js'
 import { v4 as uuidv4 } from 'uuid'; // ESM import syntax
+import StatusCodes from '../utils/statusCodes.js';
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -127,3 +128,37 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
+
+
+export const getProduct = async (req, res) => {
+  try {
+      // Get page and limit from query parameters, with defaults
+      const page = parseInt(req.query.page) || 1; // Default to page 1
+      const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+      const skip = (page - 1) * limit;  // Number of items to skip for pagination
+
+      // Query to get products with pagination
+      const products = await Product.find()
+          .skip(skip)
+          .limit(limit);
+
+      // Get total number of products for pagination metadata
+      const totalProducts = await Product.countDocuments();
+
+      // Calculate total pages
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      // Send response with products and pagination info
+      res.status(StatusCodes.OK).json({
+          currentPage: page,
+          totalPages: totalPages,
+          totalProducts: totalProducts,
+          products: products,
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
