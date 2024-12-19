@@ -108,46 +108,13 @@ export const SignIn = async (req, res) => {
     };
     const token = jwt.sign(payload,SECRET_KEY);
     console.log(token)
-    res.status(StatusCodes.OK).json({ token: token })
+    res.status(StatusCodes.OK).json({ role: user.role,token: token })
   }
   catch (error) {
     logger.error(error.message);
 
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error })
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ role: user.role,error: error })
   }
 
 }
 
-
-export const getAllDistributors = async (req, res) => {
-  try {
-    const distributors = await User.find({ role: UserRoles.DISTRIBUTOR })
-      .select('email first_name last_name phoneNumber role createdAt');
-    res.status(StatusCodes.OK).json({ distributors });
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-  }
-};
-
-export const updateDistributor = async (req, res) => {
-  try {
-    const { userId } = req.params; // Assuming distributor ID is passed in the URL
-    const {first_name, last_name, phoneNumber,distributorStatus } = req.body; // Only these fields will be updated
-
-    // Create an object to hold only the allowed updates
-    const updates = { email, first_name, last_name, phoneNumber, distributorStatus };
-    updates["isDistributor"] = distributorStatus === UserStatus.CONFIRMED;
-    const distributor = await User.findByIdAndUpdate(userId, updates, {
-      new: true, // Returns the updated document
-      runValidators: true, // Ensures validation of the updates
-    });
-
-    if (!distributor) {
-      return res.status(StatusCodes.NOT_FOUND).json({ message: 'Distributor not found' });
-    }
-
-    res.status(StatusCodes.OK).json({ distributor });
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-  }
-};

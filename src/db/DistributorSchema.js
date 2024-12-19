@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+import { UserStatus } from '../utils/constants.js';
 // Define the Schema with the required fields
 const DistributorSchema = new mongoose.Schema({
     firstName: {
@@ -24,6 +24,11 @@ const DistributorSchema = new mongoose.Schema({
     address: {
         type: String,
         required: true, // Ensures address is provided
+    },
+    distributorStatus: {
+        type: String,
+        enum: Object.values(UserStatus), // Using UserStatus enum here
+        default: UserStatus.PENDING // Default to 'pending', waiting for admin action
     }
 }, { timestamps: true }); // Automatically add createdAt and updatedAt timestamps
 
