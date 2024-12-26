@@ -7,11 +7,11 @@ import { healthCheck } from '../controllers/testing.controller.js';
 import { verifyUserMiddleware } from '../middleware/user.middleware.js';
 import productRoutes from './product.routes.js'
 import distributorRoutes from './distributor.routes.js'
-
+import warrantyRoutes from './warranty.routes.js'
 // Use imported routes
 router.use('/user', userRoutes); // Route for user-related operations
 router.use('/product', productRoutes); // Uncomment this when adding product routes
 router.get('/health',verifyUserMiddleware,healthCheck)
 router.use('/distributor',distributorRoutes)
-
+router.use('/warranty',warrantyRoutes)
 export default router;

@@ -15,6 +15,15 @@ export const ProductCategories = {
     LUBRICANTS: 'lubricants'
 };
 
+export const VehicleTypeEnum = {
+    TWO_WHEELER: "2 Wheeler",
+    THREE_WHEELER: "3 Wheeler",
+    FOUR_WHEELER: "4 Wheeler",
+    TRACTOR: "Tractor",
+    INVENTOR: "Inventor",
+    LCV: "LCV",
+    OTHER: "Other",
+};
 
 
 export const ImageCount = {
