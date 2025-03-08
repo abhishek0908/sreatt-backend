@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
-import { UserRoles, UserStatus } from '../utils/constants.js'; // Assuming you want to store statuses in constants.js
+import { UserRoles, UserStatus } from '../utils/constants.js';
 import bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid'; // Import the uuid generator
+import { v4 as uuidv4 } from 'uuid';
 
-// Define the User Schema with necessary fields and validations
 const UserSchema = new mongoose.Schema({
     uuid: {
         type: String,
@@ -13,59 +12,57 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true, // Ensure the email is unique
-        match: [/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, 'Please enter a valid email address'] // Basic email format validation
+        unique: true,
+        match: [/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, 'Please enter a valid email address']
     },
-    first_name: {
+    firstName: {
         type: String,
-        required: true // Ensure the first name is provided
+        required: true
     },
-    last_name: {
+    lastName: {
         type: String,
-        required: true // Ensure the last name is provided
+        required: true
     },
     phoneNumber: {
         type: String,
         required: true,
-        unique: true, // Ensure the phone number is unique
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number'] // Example regex for phone numbers, including optional "+" for international numbers
+        unique: true,
+        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
     },
     role: {
         type: String,
-        enum: Object.values(UserRoles), // Use the enum values from UserRoles
-        required: true // Ensure every user has a role
+        enum: Object.values(UserRoles),
+        required: true
     },
     password: { type: String, required: true },
     isDistributor: {
         type: Boolean,
-        default: false // Initially set to false, will be updated once confirmed by admin
+        default: false
     },
     distributorStatus: {
         type: String,
-        enum: Object.values(UserStatus), // Using UserStatus enum here
-        default: UserStatus.PENDING // Default to 'pending', waiting for admin action
+        enum: Object.values(UserStatus),
+        default: UserStatus.PENDING
     }
-}, { timestamps: true }); // Automatically add createdAt and updatedAt timestamps
+}, { timestamps: true });
+
+
 
 UserSchema.pre('save', async function(next) {
     if (this.isModified('password') || this.isNew) {
         try {
-            // Check if password is not empty
             if (!this.password) {
                 throw new Error('Password is required');
             }
-
-            // Hash the password
-            const hashedPassword = await bcrypt.hash(this.password, 10); // 10 is the salt rounds
-            this.password = hashedPassword; // Set the hashed password
-            next(); // Proceed with the save operation
+            const hashedPassword = await bcrypt.hash(this.password, 10);
+            this.password = hashedPassword;
+            next();
         } catch (error) {
-            next(error); // Pass the error to the next middleware if hashing fails
+            next(error);
         }
     } else {
-        next(); // If the password is not modified, proceed with saving
+        next();
     }
 });
 
-// Export the User model based on the schema
 export default mongoose.model('User', UserSchema);

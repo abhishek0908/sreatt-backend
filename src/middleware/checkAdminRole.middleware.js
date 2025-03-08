@@ -8,7 +8,7 @@ const checkAdminRole = (req, res, next) => {
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
 
-  next(); // If the user is an admin, proceed to the next middleware/route handler
+  next();
 };
 
 export { checkAdminRole };

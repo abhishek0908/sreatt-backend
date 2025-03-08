@@ -162,3 +162,20 @@ export const getProduct = async (req, res) => {
 };
 
 
+export const getSingleProduct = async (req, res) => {
+  try {
+      const { id } = req.params; // Get product ID from request params
+      
+      // Find product by ID
+      const product = await Product.findById(id);
+      
+      if (!product) {
+          return res.status(StatusCodes.NOT_FOUND).json({ message: 'Product not found' });
+      }
+      
+      res.status(StatusCodes.OK).json(product);
+  } catch (error) {
+      console.error(error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Server Error' });
+  }
+};
