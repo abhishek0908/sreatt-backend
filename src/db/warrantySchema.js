@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {VehicleTypeEnum} from '../utils/constants.js'
+import {VehicleTypeEnum,WarrantyStatusEnum} from '../utils/constants.js'
 
 const warrantySchema = mongoose.Schema({
     dealerName: {
@@ -27,7 +27,7 @@ const warrantySchema = mongoose.Schema({
         type :String,
         require :true
     },
-    BatterySerialNumber :{
+    batterySerialNumber :{
         type :String,
         require :true
     },
@@ -38,7 +38,14 @@ const warrantySchema = mongoose.Schema({
             validator: (value) => value <= new Date(),
             message: "Date of purchase cannot be in the future.",
         },
+        
     },
+    warrantyStatus: {
+        type: String,
+        enum: Object.values(WarrantyStatusEnum),
+        default: WarrantyStatusEnum.PENDING,
+        required: true
+    }
 });
 
 

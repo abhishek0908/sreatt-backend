@@ -20,7 +20,7 @@ export const validateWarrantyInput = (data) => {
     
     if (!data.vehicleType?.trim()) errors.vehicleType = "Vehicle type is required";
     if (!data.batteryModelNumber?.trim()) errors.batteryModelNumber = "Battery model number is required";
-    if (!data.BatterySerialNumber?.trim()) errors.BatterySerialNumber = "Battery serial number is required";
+    if (!data.batterySerialNumber?.trim()) errors.batterySerialNumber = "Battery serial number is required";
     if (!data.dateOfPurchase) errors.dateOfPurchase = "Date of purchase is required";
   
     return {
@@ -49,12 +49,12 @@ export const validateWarrantyInput = (data) => {
               customerMobileNumber,
               vehicleType,
               batteryModelNumber,
-              BatterySerialNumber,
+              batterySerialNumber,
               dateOfPurchase,
           } = req.body;
   
           // Check if warranty already exists
-          const existingWarranty = await Warranty.findOne({ BatterySerialNumber });
+          const existingWarranty = await Warranty.findOne({ batterySerialNumber });
           if (existingWarranty) {
               return res.status(409).json({
                   status: 'error',
@@ -69,7 +69,7 @@ export const validateWarrantyInput = (data) => {
               customerMobileNumber,
               vehicleType,
               batteryModelNumber,
-              BatterySerialNumber,
+              batterySerialNumber,
               dateOfPurchase,
           });
   
@@ -110,7 +110,7 @@ export const validateWarrantyInput = (data) => {
               }
               warranty = await Warranty.findOne({ customerMobileNumber: phoneNumber });
           } else if (serialNumber) {
-              warranty = await Warranty.findOne({ BatterySerialNumber: serialNumber });
+              warranty = await Warranty.findOne({ batterySerialNumber: serialNumber });
           }
   
           if (!warranty) {
@@ -136,3 +136,50 @@ export const validateWarrantyInput = (data) => {
           });
       }
   };
+
+  export const updateWarranty = async (req, res) => {
+    try {
+        const { batterySerialNumber, warrantyStatus } = req.body;
+
+        if (!batterySerialNumber?.trim()) {
+            return res.status(400).json({
+                status: 'error',
+                message: "Battery serial number is required"
+            });
+        }
+
+        if (!warrantyStatus) {
+            return res.status(400).json({
+                status: 'error',
+                message: "warrantyStatus is required"
+            });
+        }
+
+        const updatedWarranty = await Warranty.findOneAndUpdate(
+            { batterySerialNumber },
+            { $set: { warrantyStatus } },
+            { new: true }
+        );
+
+        if (!updatedWarranty) {
+            return res.status(404).json({
+                status: 'error',
+                message: "No warranty found with the given serial number"
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message: "Warranty updated successfully",
+            data: updatedWarranty
+        });
+
+    } catch (error) {
+        console.error('Warranty update error:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: "Failed to update warranty",
+            error: error.message
+        });
+    }
+};

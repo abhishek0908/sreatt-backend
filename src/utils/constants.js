@@ -30,3 +30,11 @@ export const ImageCount = {
     MIN_IMAGES: 1,
     MAX_IMAGES: 7
 };
+
+// constants.js
+
+export const WarrantyStatusEnum = {
+    PENDING: 'pending',
+    REJECTED: 'rejected',
+    SOLVED: 'solved'
+};
