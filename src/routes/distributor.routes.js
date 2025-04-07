@@ -9,5 +9,5 @@ const router = express.Router();
 
 router.post('/apply',applyDistributor); // SignUp route
 router.get('/all',verifyUserMiddleware,checkAdminRole, getAllDistributors); // SignUp route
-router.put('/update-distributor/:userId',verifyUserMiddleware,checkAdminRole,updateDistributor); // SignUp route
+router.put('/update-distributor/:distributorId',verifyUserMiddleware,checkAdminRole,updateDistributor); // SignUp route
 export default router;

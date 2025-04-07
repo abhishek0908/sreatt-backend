@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { StatusCodes } from 'http-status-codes'; // For HTTP status codes
 import Distributor from '../db/DistributorSchema.js';
 import logger from '../logger.js';
-
 // Define Zod schema for contact validation
 const distributorSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -90,15 +89,25 @@ export const getAllDistributors = async (req, res) => {
 
 export const updateDistributor = async (req, res) => {
   try {
-    const { userId } = req.params; // Assuming distributor ID is passed in the URL
-    const {first_name, last_name, phoneNumber,distributorStatus } = req.body; // Only these fields will be updated
+    const { distributorId } = req.params;
 
-    // Create an object to hold only the allowed updates
-    const updates = { email, first_name, last_name, phoneNumber, distributorStatus };
-    updates["isDistributor"] = distributorStatus === UserStatus.CONFIRMED;
-    const distributor = await User.findByIdAndUpdate(userId, updates, {
-      new: true, // Returns the updated document
-      runValidators: true, // Ensures validation of the updates
+    const { firstName, lastName, phoneNumber, distributorStatus, email } = req.body;
+
+    // Build update object using camelCase to match schema
+    const updates = {
+      firstName,
+      lastName,
+      phoneNumber,
+      distributorStatus,
+    };
+
+    if (email) {
+      updates.email = email;
+    }
+
+    const distributor = await Distributor.findByIdAndUpdate(distributorId, updates, {
+      new: true,
+      runValidators: true,
     });
 
     if (!distributor) {
@@ -107,6 +116,7 @@ export const updateDistributor = async (req, res) => {
 
     res.status(StatusCodes.OK).json({ distributor });
   } catch (error) {
+    console.error('Error updating distributor:', error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
