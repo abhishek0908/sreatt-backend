@@ -183,3 +183,30 @@ export const validateWarrantyInput = (data) => {
         });
     }
 };
+
+export const getAllWarranties = async (req, res) => {
+    try {
+        const warranties = await Warranty.find();
+
+        if (warranties.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'No warranties found'
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'All warranties retrieved successfully',
+            data: warranties
+        });
+
+    } catch (error) {
+        console.error('Get all warranties error:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to retrieve warranties',
+            error: error.message
+        });
+    }
+};
